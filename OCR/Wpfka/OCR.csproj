@@ -91,6 +91,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Algorithm.cs" />
+    <Compile Include="AmountAndType.cs" />
+    <Compile Include="CodeFile1.cs" />
+    <Compile Include="Erosion.cs" />
+    <Compile Include="LetterWidthAndCount.cs" />
+    <Compile Include="PixelArrayAndParams.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -105,6 +111,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Operations.cs" />
+    <Compile Include="PixelsCopy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
