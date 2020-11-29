@@ -74,6 +74,7 @@ namespace WpfKa
                 mousePos = newMousePoint;
         }
         byte[,] picPixels;
+        int ccounter = 0;
         List<PixelArrayAndParams> letters = new List<PixelArrayAndParams>();
         [DllImport("user32.dll")]
         public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, uint dwExtraInfo);
@@ -100,41 +101,6 @@ namespace WpfKa
                 }
                 else
                     d.Create();
-                d = new DirectoryInfo("C:\\Users\\gorka\\OneDrive\\Рабочий стол\\OCR\\LettersD\\");
-                if (d.Exists)
-                {
-                    d.Delete(true);
-                    d.Create();
-                }
-                else
-                    d.Create();
-
-                d = new DirectoryInfo("C:\\Users\\gorka\\OneDrive\\Рабочий стол\\OCR\\Dilatation\\");
-                if (d.Exists)
-                {
-                    d.Delete(true);
-                    d.Create();
-                }
-                else
-                    d.Create();
-
-                d = new DirectoryInfo("C:\\Users\\gorka\\OneDrive\\Рабочий стол\\OCR\\Erosion\\");
-                if (d.Exists)
-                {
-                    d.Delete(true);
-                    d.Create();
-                }
-                else
-                    d.Create();
-                DirectoryInfo dd = new DirectoryInfo("C:\\Users\\gorka\\OneDrive\\Рабочий стол\\OCR\\LettersAfterErosionAnalysis\\");
-                if (dd.Exists)
-                {
-                    dd.Delete(true);
-                    dd.Create();
-                }
-                else
-                    dd.Create();
-
                 image = new System.Drawing.Bitmap(elem);
                 int w = image.Width;
                 int h = image.Height;
@@ -162,50 +128,12 @@ namespace WpfKa
                     }
                 }
                 s.Stop();//остановка таймера
-                string[] sKU = elem.Split('\\');//результаты кидаю по новому пути( этот кусок просто для тестов)
-                sKU[sKU.Length - 2] = "TestResults";
-                StringBuilder newPath = new StringBuilder();
-                for (int iter = 0; iter < sKU.Length; iter++)
-                {
-                    newPath.Append(sKU[iter]);
-                    if (iter != sKU.Length - 1)
-                        newPath.Append("\\\\");
-                }
-
-                //Чисто для теста, начало:
-                //запись файлов необходимо проводить именно таким образом, чтобы все корректно сохранялось на диске (запись нужна для промежуточного тестирования).
-                using (FileStream ms = new FileStream(newPath.ToString(), FileMode.Create))
-                using (Bitmap i1 = (Bitmap)image.Clone())
-                {
-                    i1.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                }
-                System.Windows.MessageBox.Show(s.ElapsedMilliseconds.ToString());//Вывод времени, затраченного на бинаризацию и сброс таймера.
-                s.Reset();
-                //Чисто для теста, конец. Можно удалять при релизе.
+                System.Windows.MessageBox.Show(s.ElapsedMilliseconds.ToString());
             }
         }
-        /// <summary>
-        /// Метод транспонирует массив данных о букве.
-        /// </summary>
-        /// <param name="letter"></param>
-        /// <param name="heigth"></param>
-        /// <param name="width"></param>
-        /// <returns></returns>
-        byte[,] Transpose(List<List<byte>> letter, int heigth, int width)
-        {
-            byte[,] result = new byte[heigth, width];
-            for (int i = 0; i < width; i++)
-            {
-                for (int j = 0; j < heigth; j++)
-                {
-                    result[j, i] = letter[i][j];
-                }
-            }
-            return result;
-        }
+        
         bool gc = false;
         byte mostRescentElem = 0;
-        int counter1 = 0;//Счетчик для нумерации картинок
         /// <summary>
         /// Метод, разрезающий общий набор пикселей на строки и символы.
         /// Одно из больших частей, мякоток...
@@ -220,68 +148,36 @@ namespace WpfKa
             List<PixelArrayAndParams> letters = new List<PixelArrayAndParams>(); //
             List<List<byte>> letter = new List<List<byte>>();
             List<byte> row = new List<byte>();
-            using (StreamWriter f_out = new StreamWriter("pixelsString.txt", false))
-                for (int j = 0; j < width; j++)
+            for (int j = 0; j < width; j++)
+            {
+                bool isBlack = false;
+                for (int i = l; i < r; i++)
                 {
-                    bool isBlack = false;
-                    for (int i = l; i < r; i++)
-                    {
-                        row.Add(picPixels[i, j]);
-                        f_out.Write(picPixels[i, j] + " ");
-                        if (picPixels[i, j] == 1)
-                            isBlack = true;
-                    }
-                    f_out.Write("\n");
-                    if (isBlack)
-                        letter.Add(new List<byte>(row));
-                    else
-                    if (letter.Count != 0)
-                    {
-                        letters.Add(new PixelArrayAndParams(Transpose(letter, r - l, letter.Count), row.Count, letter.Count));
-                        bool isMatched = false;
-                        for (int i = 0; i < lettersInfo.Count; i++)
-                            if (letter.Count == lettersInfo[i].width)
-                            {
-                                LetterWidthAndCount v = lettersInfo[i];
-                                v.count++;
-                                lettersInfo[i] = v;
-                                isMatched = true;
-                            }
-                        if (!isMatched)
-                            lettersInfo.Add(new LetterWidthAndCount((byte)letter.Count, 1));
-                        //Отрисовка получаемых букв - лишь для теста.
-                        System.Drawing.Bitmap b = new System.Drawing.Bitmap(letter.Count, r - l);
-                        for (int i = 0; i < r - l; i++)
-                        {
-                            for (int k = 0; k < letter.Count; k++)
-                            {
-                                switch (letter[k][i])
-                                {
-                                    case 1:
-                                        {
-                                            b.SetPixel(k, i, System.Drawing.Color.Black);
-                                            break;
-                                        }
-                                    case 0:
-                                        {
-                                            b.SetPixel(k, i, System.Drawing.Color.White);
-                                            break;
-                                        }
-                                }
-                            }
-                        }
-                        using (FileStream ms = new FileStream("C:\\Users\\gorka\\OneDrive\\Рабочий стол\\OCR\\Letters\\" +
-                            counter1 + ".png", FileMode.Create))
-                        using (Bitmap i1 = (Bitmap)b.Clone())
-                        {
-                            i1.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                        }
-                        //конец отрисовки. Удалить до сюда.
-                        letter.Clear();
-                        counter1++;
-                    }
-                    row.Clear();
+                    row.Add(picPixels[i, j]);
+                    if (picPixels[i, j] == 1)
+                        isBlack = true;
                 }
+                if (isBlack)
+                    letter.Add(new List<byte>(row));
+                else
+                if (letter.Count != 0)
+                {
+                    letters.Add(new PixelArrayAndParams(Operations.Transpose(letter, r - l, letter.Count), row.Count, letter.Count));
+                    bool isMatched = false;
+                    for (int i = 0; i < lettersInfo.Count; i++)
+                        if (letter.Count == lettersInfo[i].width)
+                        {
+                            LetterWidthAndCount v = lettersInfo[i];
+                            v.count++;
+                            lettersInfo[i] = v;
+                            isMatched = true;
+                        }
+                    if (!isMatched)
+                        lettersInfo.Add(new LetterWidthAndCount((byte)letter.Count, 1));
+                    letter.Clear();
+                }
+                row.Clear();
+            }
             lettersInfo.Sort();// По найденным ширинам символов объединяю их.
             if (!gc)
             {
@@ -290,6 +186,39 @@ namespace WpfKa
             }
             lettersInfo.Clear();
             new Erosion().UseErosion(ref letters, mostRescentElem);//Следующая мякотка программы...
+                                                                   //Отрисовка получаемых букв - лишь для теста.
+            foreach (PixelArrayAndParams ltr in letters)
+            {
+                //Отрисовка получаемых букв - лишь для теста.
+                System.Drawing.Bitmap b = new System.Drawing.Bitmap(ltr.width, ltr.heigth);
+                for (int i = 0; i < ltr.width; i++)
+                {
+                    for (int k = 0; k < ltr.heigth; k++)
+                    {
+                        switch (ltr.pixelArray[k, i])
+                        {
+                            case 1:
+                                {
+                                    b.SetPixel(i, k, System.Drawing.Color.Black);
+                                    break;
+                                }
+                            case 0:
+                                {
+                                    b.SetPixel(i, k, System.Drawing.Color.White);
+                                    break;
+                                }
+                        }
+                    }
+                }
+
+                using (FileStream ms = new FileStream("C:\\Users\\gorka\\OneDrive\\Рабочий стол\\OCR\\Letters\\" +
+                    ccounter + ".png", FileMode.Create))
+                using (Bitmap i1 = (Bitmap)b.Clone())
+                {
+                    i1.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                    ccounter++;
+                }
+            }//Удалить до сюда.
             return letters;
         }
 

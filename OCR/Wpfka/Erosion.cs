@@ -26,8 +26,6 @@ namespace WpfKa
 
             return new PixelArrayAndParams(newLetter, heigth, lastColumns.Count);
         }
-        int counter2 = 0;
-        int counter4 = 0;//ненужный счетчик
         /// <summary>
         /// Метод, проводящий доп. обрезку символов с помощью эрозии.
         /// К каждому символу из списка проверяется операция эрозии. После этого, по обработанному изображению ищу пустые столбцы
@@ -87,25 +85,6 @@ namespace WpfKa
                                     numsOfWhiteColumns.Add(i);
                             }
                     }
-                    //Вывод результата эрозии. Лишь для тестов.
-                    System.Drawing.Bitmap b = new System.Drawing.Bitmap(lettersN[iter].width, lettersN[iter].heigth);
-                    for (int i = 0; i < lettersN[iter].heigth; i++)
-                        for (int j = 0; j < lettersN[iter].width; j++)
-                            if (curArray[i, j] == 1)
-                                b.SetPixel(j, i, System.Drawing.Color.Black);
-                            else
-                            {
-                                b.SetPixel(j, i, System.Drawing.Color.White);
-                                curArray[i, j] = 0;
-                            }
-                    using (FileStream ms = new FileStream("C:\\Users\\gorka\\OneDrive\\Рабочий стол\\OCR\\Erosion\\" +
-                        counter2 + ".png", FileMode.Create))
-                    using (Bitmap i2 = (Bitmap)b.Clone())
-                    {
-                        i2.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                        counter2++;
-                    }//Удалить до сих пор.
-
                     //Пост-обработка найденных номеров пустых столбцов.    
                     i1 = 0;
                     if (numsOfWhiteColumns.Count > 0)
@@ -270,37 +249,6 @@ namespace WpfKa
                     }
                 }
             }
-            i1 = 0;
-            //Вывод результата преобразований. Только для теста?
-            foreach (PixelArrayAndParams element in lettersN)
-            {
-                System.Drawing.Bitmap b1 = new System.Drawing.Bitmap(element.width, element.heigth);
-                for (int i = 0; i < element.width; i++)
-                {
-                    for (int j = 0; j < element.heigth; j++)
-                        switch (element.pixelArray[j, i])
-                        {
-                            case 1:
-                                {
-                                    b1.SetPixel(i, j, System.Drawing.Color.Black);
-                                    break;
-                                }
-                            case 0:
-                                {
-                                    b1.SetPixel(i, j, System.Drawing.Color.White);
-                                    break;
-                                }
-                        }
-                }
-                using (FileStream ms = new FileStream("C:\\Users\\gorka\\OneDrive\\Рабочий стол\\OCR\\LettersAfterErosionAnalysis\\" +
-                    counter4 + ".png", FileMode.Create))
-                using (Bitmap i2 = (Bitmap)b1.Clone())
-                {
-                    i2.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                    counter4++;
-                }
-
-            }//Удалить до сих пор.
         }
     }
 }

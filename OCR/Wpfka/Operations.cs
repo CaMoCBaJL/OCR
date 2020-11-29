@@ -10,6 +10,25 @@ namespace WpfKa
     class Operations
     {
         /// <summary>
+        /// Метод транспонирует массив данных о букве.
+        /// </summary>
+        /// <param name="letter"></param>
+        /// <param name="heigth"></param>
+        /// <param name="width"></param>
+        /// <returns></returns>
+        public static byte[,] Transpose(List<List<byte>> letter, int heigth, int width)
+        {
+            byte[,] result = new byte[heigth, width];
+            for (int i = 0; i < width; i++)
+            {
+                for (int j = 0; j < heigth; j++)
+                {
+                    result[j, i] = letter[i][j];
+                }
+            }
+            return result;
+        }
+        /// <summary>
         /// Метод, производящий бинаризацию картинки по 1 из 3х компонент - R, G или B, а также разделяющий исходный набор пикселей изображения на строки.
         /// </summary>
         /// <param name="component"> Цветовая компонента, по которой будет происходить бинаризцаия.</param>
