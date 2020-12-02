@@ -7,8 +7,40 @@ using System.Drawing;
 using System.IO;
 namespace WpfKa
 {
+    /// <summary>
+    /// Класс, содержащий операции, производимые над изображением.
+    /// </summary>
     class Operations
     {
+        /// <summary>
+        /// Изменение формата данных о пиксельных строках для распаралелливания последующих операций.
+        /// </summary>
+        /// <param name="columns"></param>
+        /// <returns></returns>
+        public static List<PixelStringHeigthAndFirstIndex> FormatStingsInfo(List<AmountAndType> columns)
+        {
+            List<PixelStringHeigthAndFirstIndex> res = new List<PixelStringHeigthAndFirstIndex>();
+            int counter = 0;
+            int i = 0;
+            if (columns[0].type == 1)
+            {
+                i = 1;
+                res.Add(new PixelStringHeigthAndFirstIndex(0, columns[0].amount));
+                counter += columns[0].amount;
+            }
+            while (i + 1 < columns.Count)
+            {
+                counter += columns[i].amount;
+                res.Add(new PixelStringHeigthAndFirstIndex(counter, counter + columns[i + 1].amount));
+                counter += columns[i + 1].amount;
+                i += 2;
+            }
+            if(columns[i].type == 1)
+            {
+                res.Add(new PixelStringHeigthAndFirstIndex(counter, counter + columns[i].amount));
+            }
+            return res;
+        }
         /// <summary>
         /// Метод транспонирует массив данных о букве.
         /// </summary>
