@@ -23,6 +23,8 @@ using System.Diagnostics;
 using System.Collections;
 using System.Windows.Markup.Localizer;
 using System.Threading;
+using Tesseract.Interop;
+using Tesseract;
 
 namespace WpfKa
 {
@@ -34,7 +36,7 @@ namespace WpfKa
         
         public async void GoodPerformance(List<AmountAndType> columns)
         {
-            imageClassifiedByPixelLetters = new List<PixelArrayAndParams>();
+            imageClassifiedByPixelLetters = new List<Bitmap>();
             await Task.Run(() => {
                 ushort counter = 0;
                 foreach (AmountAndType element in columns)
@@ -54,20 +56,7 @@ namespace WpfKa
                             }
                     }
                 }
-            });
-            
-            //return imageClassifiedByPixelLetters;
-        }
-        List<uint> allTasks;//TODO: Распараллеливание встало. Нужно больше инфы....
-        List<PixelArrayAndParams> result;
-        public void Unboxing(object elem)
-        {
-            allTasks.Add((uint)Task.CurrentId);
-            System.Windows.MessageBox.Show(Task.CurrentId.ToString());
-            PixelStringHeigthAndFirstIndex item = (PixelStringHeigthAndFirstIndex)elem;
-            List<PixelArrayAndParams> res = PixelsCopy(item.firstElem, item.heigth, w, false);
-            //int j = allTasks.Find(s => s == (uint)Task.CurrentId);
-            //Task.WhenAll(allTasks.Take(j))
+            });            
         }
         
         /// <summary>
@@ -94,7 +83,7 @@ namespace WpfKa
         }
         System.Drawing.Point mousePos;
         System.Drawing.Bitmap image;
-        List<PixelArrayAndParams> imageClassifiedByPixelLetters;
+        List<Bitmap> imageClassifiedByPixelLetters;
         int w;
         /// <summary>
         /// Таймер, проверяющий, поменялось ли расположение мыши на экране в течение секунды.
@@ -114,7 +103,6 @@ namespace WpfKa
                 mousePos = newMousePoint;
         }
         byte[,] picPixels;
-        int ccounter = 0;
         List<PixelArrayAndParams> letters = new List<PixelArrayAndParams>();
         [DllImport("user32.dll")]
         public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, uint dwExtraInfo);
@@ -133,14 +121,6 @@ namespace WpfKa
             Stopwatch s = new Stopwatch();//таймер для замеров времени
             foreach (string elem in fD.FileNames)//далее действия происходят для каждого из них
             {
-                DirectoryInfo d = new DirectoryInfo("C:\\Users\\gorka\\OneDrive\\Рабочий стол\\OCR\\Letters");
-                if (d.Exists)
-                {
-                    d.Delete(true);
-                    d.Create();
-                }
-                else
-                    d.Create();
                 image = new System.Drawing.Bitmap(elem);
                 w = image.Width;
                 int h = image.Height;
@@ -152,54 +132,52 @@ namespace WpfKa
                 //Вариант для релизной версии,чтобы приложение не зависало.
                 /*imageClassifiedByPixelLetters = new List<PixelArrayAndParams>();
                 GoodPerformance(columns);*/
-                imageClassifiedByPixelLetters = new List<PixelArrayAndParams>();
-                List<int> notParallelResult = new List<int>();
-                ushort counter = 0;
-                int counteR = 0;
-                foreach (AmountAndType element in columns)
-                {
-                    switch (element.type)
-                    {
-                        case 1:
-                            {
-                                imageClassifiedByPixelLetters.AddRange(PixelsCopy(counter, (ushort)(counter + element.amount), w, true));
-                                notParallelResult.Add(imageClassifiedByPixelLetters.Count - counteR);
-                                counteR = imageClassifiedByPixelLetters.Count;
-                                counter += element.amount;
-                                break;
-                            }
-                        case 0:
-                            {
-                                counter += element.amount;
-                                break;
-                            }
-                    }
-                }
-                s.Stop();//остановка таймера
-                System.Windows.MessageBox.Show("Variant 1: " + s.ElapsedMilliseconds.ToString());
-                s.Restart();
+                imageClassifiedByPixelLetters = new List<Bitmap>();
                 var tasks = new List<Task>();
                 Hashtable parallelresult = new Hashtable();
                 foreach (PixelStringHeigthAndFirstIndex item in parallelVar)
                 {
                     tasks.Add(Task.Run( () =>
                     {
-                        List<PixelArrayAndParams> res = PixelsCopy(item.firstElem, item.heigth, w, false);
+                        List<Bitmap> res = PixelsCopy(item.firstElem, item.heigth, w, false);
                         parallelresult.Add((uint)Task.CurrentId, res);
                     }));
                 }
                 Task.WaitAll(tasks.ToArray());
-                int counter1 = 0;
-                imageClassifiedByPixelLetters = new List<PixelArrayAndParams>();
                 uint[] keys = new uint[parallelresult.Count];
                 parallelresult.Keys.CopyTo(keys, 0);
                 Array.Sort(keys);
                 foreach (uint key in keys)
                 {
-                    imageClassifiedByPixelLetters.AddRange(((List<PixelArrayAndParams>)parallelresult[key]));
+                    imageClassifiedByPixelLetters.AddRange(((List<Bitmap>)parallelresult[key]));
                 }
                 s.Stop();
+                StringBuilder result = new StringBuilder();
                 System.Windows.MessageBox.Show("Variant 2: " + s.ElapsedMilliseconds.ToString());
+                int c = 0;
+                foreach (Bitmap img in imageClassifiedByPixelLetters)
+                {
+
+                    using (FileStream fS = new FileStream("C:\\Users\\gorka\\OneDrive\\Рабочий стол\\OCR\\Letters\\" + c + ".png", FileMode.Create))
+                        img.Save(fS, System.Drawing.Imaging.ImageFormat.Png);
+
+                    c++;
+                }
+                /*using (var engine = new TesseractEngine("C:\\Program Files (x86)\\Tesseract-OCR\\tessdata", "rus", EngineMode.Default))
+                {
+                    foreach (PixelArrayAndParams item in imageClassifiedByPixelLetters)
+                    {
+                        using (Pix img = Pix.LoadFromMemory(item.pixelArray.Cast<byte>().ToArray()))
+                        {
+                            using (Tesseract.Page recLet = engine.Process(img))
+                            {
+                                result.Append(recLet.GetText());
+                            }
+                        }
+
+                    }
+                }
+                System.Windows.MessageBox.Show(result.ToString());*/
             }
         }
         
@@ -213,8 +191,9 @@ namespace WpfKa
         /// <param name="r"> Нижняя точка строки.</param>
         /// <param name="width"> Ширина строки.</param>
         /// <returns></returns>
-        List<PixelArrayAndParams> PixelsCopy(int l, int r, int width, bool ver)
+        List<Bitmap> PixelsCopy(int l, int r, int width, bool ver)
         {
+            List<Bitmap> procRes = new List<Bitmap>();
             List<LetterWidthAndCount> lettersInfo = new List<LetterWidthAndCount>();//Типо lW для алгоритма.
             List<PixelArrayAndParams> letters = new List<PixelArrayAndParams>(); //
             List<List<byte>> letter = new List<List<byte>>();
@@ -257,9 +236,10 @@ namespace WpfKa
             }
             lettersInfo.Clear();
             new Erosion().UseErosion(ref letters, mostRescentElem);//Следующая мякотка программы...
-            for (int iter = 0; iter < letters.Count; iter++)//Масштабирование результатов до размера 30х30.
+            for (int iter = 0; iter < letters.Count; iter++)//Масштабирование результатов до размера picSize.
             {
-                byte[,] scalledPic = new byte[30, 30];
+                int picSize = 30;
+                byte[,] scalledPic = new byte[picSize, picSize];
                 using (Bitmap b = new Bitmap(letters[iter].width, letters[iter].heigth))
                 {
                     for (int i = 0; i < letters[iter].width; i++)
@@ -270,19 +250,22 @@ namespace WpfKa
                             else
                                 b.SetPixel(i, j, System.Drawing.Color.White);
                         }
-                    Bitmap b1 = new Bitmap(b, new System.Drawing.Size(30, 30));
-                    for (int i = 0; i < 30; i++)
-                        for(int j = 0; j < 30; j++)
+                    Bitmap b1 = new Bitmap(b, new System.Drawing.Size(picSize, picSize));
+                    /*for (int i = 0; i < picSize; i++)
+                        for(int j = 0; j < picSize; j++)
                         {
-                            if (b1.GetPixel(i, j).ToKnownColor() == KnownColor.Black)
+                            System.Drawing.Color f = b1.GetPixel(i, j);
+                            if (f.R * f.G * f.B == 0)
                                 scalledPic[i, j] = 1;
                             else
                                 scalledPic[i, j] = 0;
-                        }
+                        }*/
+                    Operations.Dilatation(ref b1);
+                    procRes.Add(b1);
                 }
-                letters[iter] = new PixelArrayAndParams(scalledPic, 30, 30);
+                letters[iter] = new PixelArrayAndParams(scalledPic, picSize, picSize);
             }
-            return letters;
+            return procRes;
         }
 
         bool status = false;

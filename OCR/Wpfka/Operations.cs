@@ -12,6 +12,16 @@ namespace WpfKa
     /// </summary>
     class Operations
     {
+        private struct DilatationCoords
+        {
+            public int x;
+            public int y;
+            public DilatationCoords(int x, int y)
+            {
+                this.x = x;
+                this.y = y;
+            }
+        }
         /// <summary>
         /// Изменение формата данных о пиксельных строках для распаралелливания последующих операций.
         /// </summary>
@@ -28,7 +38,7 @@ namespace WpfKa
                 res.Add(new PixelStringHeigthAndFirstIndex(0, columns[0].amount));
                 counter += columns[0].amount;
             }
-            while (i + 1 < columns.Count)
+            while (i + 2 < columns.Count)
             {
                 counter += columns[i].amount;
                 res.Add(new PixelStringHeigthAndFirstIndex(counter, counter + columns[i + 1].amount));
@@ -402,6 +412,49 @@ namespace WpfKa
                 columns.Add(new AmountAndType(counter, 0));
             return columns;
         }
+        /// <summary>
+        /// Метод производящий дилатацию увеличенного обработанного текста.
+        /// <para>Фигура:
+        /// 
+        ///     <para>___ *</para>
+        ///   _*  (*) *<para></para>
+        ///    ___   *
+        ///       </para>
+        /// </summary>
+        /// <param name="img"> Увеличенное изображение.</param>
+        public static void Dilatation(ref Bitmap img)
+        {
+            var newPoints = new List<DilatationCoords>();
+            for (int i = 0; i < img.Width; i++)
 
+                for (int j = 0; j < img.Height; j++)
+                {
+                    if (img.GetPixel(i, j).R * img.GetPixel(i, j).G * img.GetPixel(i, j).B == 0)
+                    {
+                        if (i > 0)
+                        {
+                            if (img.GetPixel(i - 1, j).R * img.GetPixel(i - 1, j).G * img.GetPixel(i - 1, j).B != 0)
+                                newPoints.Add(new DilatationCoords(i - 1, j));
+                            if (i + 1 < img.Width && img.GetPixel(i + 1, j).R * img.GetPixel(i + 1, j).G * img.GetPixel(i + 1, j).B != 0)
+                                newPoints.Add(new DilatationCoords(i + 1, j));
+                        }
+                        else
+                            if (img.GetPixel(i + 1, j).R * img.GetPixel(i + 1, j).G * img.GetPixel(i + 1, j).B != 0)
+                            newPoints.Add(new DilatationCoords(i + 1, j));
+                        if (j > 0)
+                        {
+                            if (img.GetPixel(i, j - 1).R * img.GetPixel(i, j - 1).G * img.GetPixel(i, j - 1).B != 0)
+                                newPoints.Add(new DilatationCoords(i, j - 1));
+                            if (j + 1 < img.Width && img.GetPixel(i, j + 1).R * img.GetPixel(i, j + 1).G * img.GetPixel(i, j + 1).B != 0)
+                                newPoints.Add(new DilatationCoords(i, j + 1));
+                        }
+                        else
+                            if (img.GetPixel(i, j + 1).R * img.GetPixel(i, j + 1).G * img.GetPixel(i, j + 1).B != 0)
+                            newPoints.Add(new DilatationCoords(i, j + 1));
+                    }
+                }
+            foreach (DilatationCoords point in newPoints)
+                img.SetPixel(point.x, point.y, System.Drawing.Color.Black);
+        }
     }
 }

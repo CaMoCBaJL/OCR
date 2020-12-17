@@ -1,7 +1,3 @@
-C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\bin\Debug\x86\liblept1753.dll
-C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\bin\Debug\x86\libtesseract3052.dll
-C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\bin\Debug\x64\liblept1753.dll
-C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\bin\Debug\x64\libtesseract3052.dll
 C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\bin\Debug\WpfKa.exe.config
 C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\bin\Debug\WpfKa.exe
 C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\bin\Debug\WpfKa.pdb
@@ -25,3 +21,7 @@ C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\obj\Debug\OCR.cspr
 C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\obj\Debug\OCR.csproj.CopyComplete
 C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\obj\Debug\WpfKa.exe
 C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\obj\Debug\WpfKa.pdb
+C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\bin\Debug\x86\leptonica-1.80.0.dll
+C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\bin\Debug\x86\tesseract41.dll
+C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\bin\Debug\x64\leptonica-1.80.0.dll
+C:\Users\gorka\OneDrive\Рабочий стол\OCR\OCR\WpfKa\bin\Debug\x64\tesseract41.dll
